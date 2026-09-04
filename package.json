@@ -1,0 +1,14 @@
+{
+  "name": "aeos",
+  "version": "1.0.0",
+  "description": "Unbreakable, Multi-Agent AI Engineering Operating System",
+  "main": "src/aeosd-core.js",
+  "scripts": {
+    "start": "node src/aeosd-core.js --watch"
+  },
+  "dependencies": {
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "sqlite3": "^5.1.7"
+  }
+}

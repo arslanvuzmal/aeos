@@ -1,0 +1,5 @@
+node_modules/
+.planning/aeosd.pid
+.planning/aeosd.log
+dist/
+workspace/scratch/
