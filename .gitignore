@@ -1,5 +1,12 @@
 node_modules/
 .planning/aeosd.pid
-.planning/aeosd.log
+.planning/*.log
 dist/
 workspace/scratch/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+

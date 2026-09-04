@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# AEOS Cryptographic Plan Attestation Engine
+# Enforces fail-closed plan locking and PostgreSQL attestation tracking
+
+set -euo pipefail
+
+WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLAN_FILE="${WORKSPACE_ROOT}/task_plan.md"
+LEDGER_DIR="${WORKSPACE_ROOT}/.aeos"
+HASH_FILE="${LEDGER_DIR}/task_plan.sha256"
+DB_URL="postgresql://aeos_admin:aeos_secure_password_2026@localhost:5432/aeos_kernel"
+
+mkdir -p "${LEDGER_DIR}"
+
+if [[ ! -f "${PLAN_FILE}" ]]; then
+    echo -e "\x1b[31m[AEOS FATAL]\x1b[0m State file missing: ${PLAN_FILE}" >&2
+    exit 1
+fi
+
+CURRENT_HASH=$(sha256sum "${PLAN_FILE}" | awk '{print $1}')
+
+sync_db() {
+    local hash_val="$1"
+    local operator="${2:-system_operator}"
+    # Find active project ID or fallback to first registered project
+    local project_id
+    project_id=$(docker exec -i aeos-postgres psql -U aeos_admin -d aeos_kernel -t -A -c \
+        "SELECT id FROM projects ORDER BY created_at ASC LIMIT 1;" 2>/dev/null || echo "")
+
+    if [[ -n "${project_id}" ]]; then
+        docker exec -i aeos-postgres psql -U aeos_admin -d aeos_kernel -c \
+            "INSERT INTO plan_attestations (project_id, sha256_hash, attested_by, is_valid) 
+             VALUES ('${project_id}', '${hash_val}', '${operator}', TRUE);" >/dev/null 2>&1 || true
+    fi
+}
+
+case "${1:-}" in
+    --lock)
+        echo "${CURRENT_HASH}" > "${HASH_FILE}"
+        sync_db "${CURRENT_HASH}" "${2:-admin_lock}"
+        echo -e "\x1b[32m[AEOS ATTEST]\x1b[0m Task plan cryptographically locked."
+        echo "SHA-256: ${CURRENT_HASH}"
+        exit 0
+        ;;
+
+    --verify)
+        if [[ ! -f "${HASH_FILE}" ]]; then
+            echo -e "\x1b[31m[PLAN TAMPERED]\x1b[0m No attestation record found. Run './aeos-attest --lock' first." >&2
+            exit 1
+        fi
+        STORED_HASH=$(cat "${HASH_FILE}")
+        if [[ "${CURRENT_HASH}" != "${STORED_HASH}" ]]; then
+            echo -e "\x1b[31m[PLAN TAMPERED]\x1b[0m Cryptographic mismatch in task_plan.md!" >&2
+            echo "Expected: ${STORED_HASH}" >&2
+            echo "Computed: ${CURRENT_HASH}" >&2
+            echo "Halting execution to prevent unauthorized plan drift." >&2
+            exit 1
+        fi
+        echo -e "\x1b[32m[AEOS VERIFIED]\x1b[0m Task plan hash matches verified lock (${CURRENT_HASH:0:8}...)"
+        exit 0
+        ;;
+
+    --hash)
+        echo "${CURRENT_HASH}"
+        exit 0
+        ;;
+
+    *)
+        echo "Usage: ./aeos-attest [--lock [operator_name] | --verify | --hash]"
+        exit 1
+        ;;
+esac

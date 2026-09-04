@@ -1,0 +1,50 @@
+[
+  {
+    "id": "38d7fa85-3e37-469e-ab89-ce793da7f8ac",
+    "text": "<!-- Page 1 -->\nAEOS KERNEL ARCHITECTURAL SPECIFICATION - REVISION 2.4\nProcess control blocks govern preemptive time slicing and memory isolation.\nTo avoid resource starvation, priority queues enforce round-robin scheduling.",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": false
+  },
+  {
+    "id": "8b777a5a-78a1-4c3d-a300-df64309f7df2",
+    "text": "```typescript\nexport interface SandboxConfig {\n    Memory: 1073741824;\n    NanoCpus: 1000000000;\n    NetworkMode: 'none';\n}\n```",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  },
+  {
+    "id": "2aafd0b5-494f-40d1-8b33-c0c68a9215fa",
+    "text": "| Parameter | Allocation | Isolation Mode |",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  },
+  {
+    "id": "7c683706-f3ad-4875-9b42-dba6bf97df01",
+    "text": "| RAM_CAP | 1024 MB | Hard Cgroup |\n| CPU_SHARE | 1.0 Core | CFS Quota |",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  },
+  {
+    "id": "342e3736-4e0e-4333-bc0d-82dfc367bfda",
+    "text": "<!-- Page 1 -->\nAEOS KERNEL ARCHITECTURAL SPECIFICATION - REVISION 2.4\nProcess control blocks govern preemptive time slicing and memory isolation.\nTo avoid resource starvation, priority queues enforce round-robin scheduling.",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": false
+  },
+  {
+    "id": "4d1220b0-b0a0-47a6-9f2d-4d60a5963e92",
+    "text": "```typescript\nexport interface SandboxConfig {\n    Memory: 1073741824;\n    NanoCpus: 1000000000;\n    NetworkMode: 'none';\n}\n```",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  },
+  {
+    "id": "09976368-25e0-410f-93f8-3d632f9d91e7",
+    "text": "| Parameter | Allocation | Isolation Mode |",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  },
+  {
+    "id": "ab5c111d-daf4-43d9-9c7d-c2101a251b93",
+    "text": "| RAM_CAP | 1024 MB | Hard Cgroup |\n| CPU_SHARE | 1.0 Core | CFS Quota |",
+    "source": "kernel_spec.pdf",
+    "is_code_or_table": true
+  }
+]

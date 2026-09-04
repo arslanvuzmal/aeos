@@ -1,14 +1,46 @@
 {
-  "name": "aeos",
+  "name": "aeos-core",
   "version": "1.0.0",
-  "description": "Unbreakable, Multi-Agent AI Engineering Operating System",
-  "main": "src/aeosd-core.js",
+  "description": "AI Engineering Operating System - Kernel & Multi-Agent Pipeline",
+  "main": "dist/index.js",
   "scripts": {
+    "build": "tsc",
+    "test:phase1": "tsx tests/phase1_smoke_test.ts",
+    "test:phase2": "tsx tests/phase2_ledger_test.ts",
+    "test:phase3": "tsx tests/phase3_compressor_test.ts",
+    "test:phase5": "tsx tests/phase5_kernel_test.ts",
+    "test:phase6": "tsx tests/phase6_browser_test.ts",
+    "aeos": "tsx src/aeos_cli.ts",
+    "test:swarm": "bin/aeos run \"Build and test isolated JWT Authentication Module\"",
+    "test:dashboard": "tsx tests/dashboard_test.ts",
+    "audit:dashboard": "tsx tests/audit_dashboard_rigorous.ts",
+    "dashboard": "tsx src/dashboard/server.ts --port 4000",
     "start": "node src/aeosd-core.js --watch"
   },
+  "bin": {
+    "aeos": "bin/aeos"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@types/node": "^20.11.0",
+    "commander": "^12.0.0",
+    "dockerode": "^4.0.2",
+    "pg": "^8.11.3",
+    "playwright": "^1.42.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@playwright/mcp": "^0.0.80",
+    "@types/dockerode": "^3.3.26",
+    "@types/pg": "^8.11.2",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
   }
 }

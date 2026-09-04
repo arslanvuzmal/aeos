@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "aeos-core": {
+      "command": "node",
+      "args": ["bin/aeos-mcp-bridge.js"],
+      "env": {
+        "AEOS_PATH": "bin/aeos",
+        "AEOS_WORKSPACE_DIR": "."
+      }
+    },
+    "aeos-memory-rag": {
+      "command": "npx",
+      "args": ["tsx", "src/mcp/rag_server.ts"]
+    },
+    "aeos-stealth-browser": {
+      "command": "npx",
+      "args": ["tsx", "src/mcp/browser_server.ts"]
+    }
+  }
+}
