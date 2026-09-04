@@ -6,8 +6,9 @@ from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 
-class LocalKnowledgeIngestionEngine:
-    def __init__(self, model_name="all-MiniLM-L6-v2", storage_dir="/workspace/scratch/index_store"):
+class GoogleDriveBookIndexer:
+    def __init__(self, model_name="all-MiniLM-L6-v2", storage_dir=".planning/index_store"):
+        print(f"Loading Local Offline Embedding Model ({model_name})...")
         self.embedder = SentenceTransformer(model_name)
         self.qdrant = QdrantClient(path=storage_dir)
         self.collection_name = "technical_library"
@@ -18,8 +19,10 @@ class LocalKnowledgeIngestionEngine:
                 vectors_config=VectorParams(size=384, distance=Distance.COSINE)
             )
 
-    def process_technical_books(self, pdf_dir="/workspace/knowledge"):
-        pdf_files = glob.glob(os.path.join(pdf_dir, "*.pdf"))
+    def index_google_drive_books(self, drive_path):
+        pdf_files = glob.glob(os.path.join(drive_path, "**/*.pdf"), recursive=True)
+        print(f"Found {len(pdf_files)} textbooks inside Drive directory. Commencing ingestion...")
+        
         for file_path in pdf_files:
             book_name = os.path.basename(file_path)
             doc = fitz.open(file_path)
@@ -60,8 +63,10 @@ class LocalKnowledgeIngestionEngine:
             
             for i in range(0, len(points), 100):
                 self.qdrant.upsert(collection_name=self.collection_name, points=points[i:i+100])
-            print(f"Loaded {book_name} successfully offline.")
+            print(f"Loaded '{book_name}' into Local Vector Index successfully.")
 
 if __name__ == "__main__":
-    engine = LocalKnowledgeIngestionEngine()
-    engine.process_technical_books()
+    import sys
+    drive_dir = sys.argv[1] if len(sys.argv) > 1 else "./gdrive_books"
+    engine = GoogleDriveBookIndexer()
+    engine.index_google_drive_books(drive_dir)

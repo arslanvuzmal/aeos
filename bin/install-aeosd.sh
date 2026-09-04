@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
-echo "Bootstrapping global AEOS terminal hooks..."
-cat << 'INNER_EOF' > /usr/local/bin/aeos
+
+# Create unified CLI binary
+cat << 'EOF' > /usr/local/bin/aeos
 #!/bin/bash
 WORKSPACE_DIR="$(pwd)"
 PLANNING_DIR="$WORKSPACE_DIR/.planning"
@@ -22,10 +23,16 @@ case "$1" in
         fi
         ;;
     *)
-        echo "AEOS CLI. Usage: aeos [start|stop]"
+        echo "AEOS Interface CLI. Usage: aeos [start|stop]"
         ;;
 esac
-INNER_EOF
+EOF
+
 chmod +x /usr/local/bin/aeos
+
+# Link aliases to the user's runprofiles
 echo "alias /aeos=\"/usr/local/bin/aeos start\"" >> ~/.bashrc || true
-echo "AEOS installation completed successfully!"
+echo "alias aeos-stop=\"/usr/local/bin/aeos stop\"" >> ~/.bashrc || true
+
+echo "AEOS INSTALLATION SUCCESSFUL!"
+echo "To boot the connected environment in any directory, type: aeos start"

@@ -30,36 +30,28 @@ class StealthBrowserService {
         return { browser, context, page };
     }
 
-    async generateBezierCurve(start, end, steps = 30) {
-        const points = [];
-        const controlX = start.x + (end.x - start.x) / 2 + (Math.random() - 0.5) * 100;
-        const controlY = start.y + (end.y - start.y) / 2 + (Math.random() - 0.5) * 100;
-
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
-            const x = (1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * controlX + t * t * end.x;
-            const y = (1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * controlY + t * t * end.y;
-            points.push({ x: Math.round(x), y: Math.round(y) });
-        }
-        return points;
-    }
-
     async handleCaptcha(page, triggerSelector) {
         const checkElement = await page.$(triggerSelector);
         if (checkElement) {
-            console.log("⚠️ [AEOS] Cloudflare challenge triggered. Initializing visual VNC server display port...");
+            console.log("⚠️ [AEOS] Capture challenge detected. Spinning VNC visual gate...");
             exec("Xvfb :99 -screen 0 1920x1080x16 & export DISPLAY=:99 && x11vnc -display :99 -nopw -listen localhost -xkb &");
-            console.log("\n🚨 ACTION REQUIRED: Captcha screen spawned. Connect locally to: vnc://localhost:5900\n");
+            
+            console.log("\n=======================================================");
+            console.log("🚨 CAPTCHA ENGAGED: Human Intervention Required.");
+            console.log("👉 Visual link: vnc://localhost:5900");
+            console.log("=======================================================\n");
+
             let resolved = false;
             for (let i = 0; i < 120; i++) {
                 await new Promise(r => setTimeout(r, 5000));
                 const activeChallenge = await page.$(triggerSelector);
                 if (!activeChallenge) {
                     resolved = true;
+                    console.log("✅ Captcha successfully resolved. Resuming automation.");
                     break;
                 }
             }
-            if (!resolved) throw new Error("Operator captcha solution timeout.");
+            if (!resolved) throw new Error("Captcha human intervention timeout.");
         }
     }
 }

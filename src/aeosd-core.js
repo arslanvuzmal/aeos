@@ -26,26 +26,30 @@ class AEOSDaemon {
 
     executeThreadScheduler(taskInstruction, tokenBudget = 5000) {
         console.log(`[AEOS KERNEL] Scheduling thread for task: ${taskInstruction}`);
-        const sandboxCmd = `docker run --rm --network=none --memory="1g" --cpus="1.0" -v ${this.workspace}:/app node:20-alpine node -e "console.log('Sandbox Thread Initiated safely.')"`;
+        
+        // Command isolation wrapper: Mount sandbox folder to restricted docker container
+        const sandboxCmd = `docker run --rm --network=none --memory="1g" --cpus="1.0" -v ${this.workspace}:/app node:20-alpine node -e "console.log('Compiling safely inside Sandboxed Container.')"`;
         const result = execSync(sandboxCmd).toString();
-        console.log(`[SANDBOX LOGS]: ${result}`);
+        console.log(`[SANDBOX EXECUTION LOGS]: ${result}`);
     }
 
     startWatcher() {
-        console.log("[AEOS Daemon] Active and watching task ledger for events...");
+        console.log("[AEOS Daemon] Background watcher active...");
         fs.watch(path.dirname(this.ledgerPath), (eventType, filename) => {
             if (filename === 'task_plan.md') {
                 try {
                     const activeHash = this.calculateHash(this.ledgerPath);
                     console.log(`[AEOS GUARDIAN] Plan integrity verified. Hash: ${activeHash}`);
+                    
                     const content = fs.readFileSync(this.ledgerPath, 'utf8');
                     const pendingLine = content.split('\n').find(line => line.includes('- [ ]'));
+                    
                     if (pendingLine) {
                         const taskClean = pendingLine.replace('- [ ]', '').trim();
                         this.executeThreadScheduler(taskClean);
                     }
                 } catch (err) {
-                    console.error(`[LOCKDOWN ACTIVE] State execution halted: ${err.message}`);
+                    console.error(`[AEOS KERNEL LOCKDOWN] State execution terminated: ${err.message}`);
                 }
             }
         });
