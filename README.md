@@ -12,9 +12,10 @@ AEOS operates across 6 integrated engineering layers:
    - Cryptographically sealed SHA-256 task plans (`task_plan.md`, `progress.md`, `findings.md`).
    - SQLite / PostgreSQL shared transaction ledger for multi-tenant token spend, turns, and audit trails.
 
-2. **Dual-Brain Autonomous Orchestration (`src/dual_brain_orchestrator.ts`, `src/orchestrator.ts`)**:
+2. **Dual-Brain & Multi-Agent Consensus Council (`src/consensus/`, `src/dual_brain_orchestrator.ts`)**:
    - **Brain 1 (Claude Code)**: Strategic planning, invariant definition, and adversarial code review.
    - **Brain 2 (Antigravity)**: Production code synthesis, execution, and hardened sandbox testing.
+   - **Consensus Council**: 4-role deliberation committee (`StrategicPlanner`, `SecurityVerifier` with strict veto, `PerformanceAuditor`, `ArchitectureCritic`) with weighted scoring, deadlock arbitration, dual Postgres/SQLite persistence, and HMAC-SHA256 signature chains.
    - High-density fallback synthesizers and automatic context compression (>87% token reduction).
 
 3. **Hybrid RAG Knowledge Engine (`src/local-rag.py`, `src/rag_tool.py`, `src/ingest_engine.py`)**:
@@ -98,6 +99,12 @@ npm run test:phase6
 
 # Dual-Brain Autonomous Live Loop
 npx tsx tests/dual_brain_test.ts
+
+# Multi-Agent Consensus Council 4-Tier Test Suite (157 Checks)
+npm run test:consensus
+
+# Consensus Council Empirical Stress & Tamper Challenge (93 Checks)
+npm run test:consensus:stress
 
 # Production Rigorous SRE & Security Penetration Audit
 npm run audit:dashboard

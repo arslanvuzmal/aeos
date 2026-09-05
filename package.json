@@ -15,7 +15,10 @@
     "test:dashboard": "tsx tests/dashboard_test.ts",
     "audit:dashboard": "tsx tests/audit_dashboard_rigorous.ts",
     "dashboard": "tsx src/dashboard/server.ts --port 4000",
-    "start": "node src/aeosd-core.js --watch"
+    "start": "node src/aeosd-core.js --watch",
+    "test:consensus": "tsx tests/consensus_council_test.ts",
+    "test:consensus:e2e": "tsx tests/consensus_e2e_runner.ts",
+    "test:consensus:stress": "tsx tests/challenger_m2_stress_test.ts"
   },
   "bin": {
     "aeos": "bin/aeos"
