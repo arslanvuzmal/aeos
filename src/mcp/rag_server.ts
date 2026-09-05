@@ -14,9 +14,12 @@ import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Pool } from 'pg';
+import { StateLedgerService } from './state_ledger_server.js';
 
 const DB_CONN = 'postgresql://aeos_admin:aeos_secure_password_2026@localhost:5432/aeos_kernel';
 const MEMORY_FILE = path.join(process.cwd(), 'storage', 'learning.json');
+
+const stateLedger = new StateLedgerService();
 
 const pool = new Pool({ connectionString: DB_CONN });
 pool.on('error', (err) => {
@@ -217,6 +220,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
         },
       },
+      {
+        name: 'write_state_ledger',
+        description: 'Writes to the state ledger files (task_plan, findings, progress) to prevent Goal Drift and define the Problem Space.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            file_path: {
+              type: 'string',
+              description: 'Path in .planning/ directory',
+            },
+            content: {
+              type: 'string',
+              description: 'The ledger markdown or text content.',
+            },
+            is_problem_space: {
+              type: 'boolean',
+              description: 'Does this define a customer need (What) or a solution (How)?',
+            },
+            task_id: {
+              type: 'string',
+              description: 'Optional UUID of the feature chunk agent task.',
+            },
+          },
+          required: ['file_path', 'content'],
+        },
+      },
     ],
   };
 });
@@ -307,6 +336,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: 'text',
             text: JSON.stringify(context, null, 2),
+          },
+        ],
+      };
+    }
+
+    if (name === 'write_state_ledger') {
+      const filePath = String(args?.file_path || '');
+      const content = String(args?.content || '');
+      const isProblemSpace = Boolean(args?.is_problem_space);
+      const taskId = args?.task_id ? String(args.task_id) : undefined;
+
+      const result = await stateLedger.writeLedger(filePath, content, isProblemSpace, taskId);
+      const durationMs = Date.now() - startTime;
+      await logTelemetry(name, args, result, durationMs);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
           },
         ],
       };
