@@ -587,7 +587,12 @@ export class PostgresConsensusLedger {
     if (this.isConnected) {
       await this.client.query(
         `INSERT INTO council_rounds (id, proposal_id, round_number, weighted_score, quorum_achieved, resolution_status, transcript)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (id) DO UPDATE SET
+           weighted_score = EXCLUDED.weighted_score,
+           quorum_achieved = EXCLUDED.quorum_achieved,
+           resolution_status = EXCLUDED.resolution_status,
+           transcript = EXCLUDED.transcript`,
         [
           round.id,
           round.proposalId,
@@ -608,7 +613,13 @@ export class PostgresConsensusLedger {
       const critiqueId = `crit_${roundId}_${critique.role}`;
       await this.client.query(
         `INSERT INTO council_critiques (id, round_id, agent_name, perspective_role, score, dimension_scores, approved, critical_flaws, signature)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT (id) DO UPDATE SET
+           score = EXCLUDED.score,
+           dimension_scores = EXCLUDED.dimension_scores,
+           approved = EXCLUDED.approved,
+           critical_flaws = EXCLUDED.critical_flaws,
+           signature = EXCLUDED.signature`,
         [
           critiqueId,
           roundId,
@@ -630,7 +641,12 @@ export class PostgresConsensusLedger {
     if (this.isConnected) {
       await this.client.query(
         `INSERT INTO consensus_certificates (certificate_id, proposal_id, round_id, decision, composite_score, transcript_hash, certificate_signature)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (certificate_id) DO UPDATE SET
+           decision = EXCLUDED.decision,
+           composite_score = EXCLUDED.composite_score,
+           transcript_hash = EXCLUDED.transcript_hash,
+           certificate_signature = EXCLUDED.certificate_signature`,
         [
           cert.certificateId,
           cert.proposalId,
@@ -2150,9 +2166,25 @@ export async function runConsensusCouncilTestSuite(): Promise<TestScorecard> {
     });
 
     await assertCheck('Tier4', 'Scenario1', 126, 'Scenario 1.5: Proposal, round, and certificate persisted to PostgreSQL and SQLite', async () => {
+      const roundRecord: DeliberationRoundRecord = {
+        id: scen1Result.consensusCertificate!.roundId,
+        proposalId: scenario1Proposal.id,
+        roundNumber: 1,
+        quorumThreshold: 0.75,
+        votesApprove: 4,
+        votesReject: 0,
+        votesAbstain: 0,
+        weightedScore: scen1Result.compositeScore,
+        quorumAchieved: scen1Result.quorumAchieved,
+        resolutionStatus: 'APPROVED',
+        transcript: { critiques: scen1Result.critiques },
+        createdAt: new Date().toISOString()
+      };
       await pgLedger.recordProposal(scenario1Proposal, 'approved');
+      await pgLedger.recordRound(roundRecord);
       await pgLedger.recordCertificate(scen1Result.consensusCertificate!);
       await sqliteLedger.recordProposal(scenario1Proposal, 'approved');
+      await sqliteLedger.recordRound(roundRecord);
       await sqliteLedger.recordCertificate(scen1Result.consensusCertificate!);
       const pgCert = await pgLedger.getCertificate(scen1Result.consensusCertificate!.certificateId);
       const sqlCert = await sqliteLedger.getCertificate(scen1Result.consensusCertificate!.certificateId);

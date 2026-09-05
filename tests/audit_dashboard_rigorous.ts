@@ -5,6 +5,7 @@ import { Client } from 'pg';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
+import { DashboardServer } from '../src/dashboard/server.js';
 
 const TARGET_HOST = '127.0.0.1';
 const TARGET_PORT = 4000;
@@ -46,10 +47,21 @@ function httpGet(endpoint: string): Promise<{ status: number; headers: http.Inco
   });
 }
 
+let localDashboardServer: DashboardServer | null = null;
+
 async function runRigorousAudit() {
   console.log(`================================================================`);
   console.log(`[AEOS SRE AUDIT] STARTING RIGOROUS DEEP AUDIT: ${BASE_URL}`);
   console.log(`================================================================\n`);
+
+  try {
+    await httpGet('/');
+  } catch {
+    console.log(`[AEOS SRE AUDIT] Server not detected on port ${TARGET_PORT}. Booting local DashboardServer...`);
+    localDashboardServer = new DashboardServer({ port: TARGET_PORT });
+    await localDashboardServer.start();
+    await new Promise((resolve) => setTimeout(resolve, 800));
+  }
 
   // =================================================================
   // VECTOR 1: REST API CONTRACT & SCHEMA AUDIT
@@ -311,7 +323,13 @@ async function runRigorousAudit() {
   } catch (err: any) {
     recordResult('DATABASE', 'Database State Reconciliation', 'FAILED', err.message);
   } finally {
-    await pgClient.end();
+    await pgClient.end().catch(() => {});
+  }
+
+  // Gracefully stop auto-started DashboardServer
+  if (localDashboardServer) {
+    console.log('[AEOS SRE AUDIT] Stopping local DashboardServer...');
+    await localDashboardServer.stop().catch(() => {});
   }
 
   // =================================================================
@@ -339,7 +357,10 @@ async function runRigorousAudit() {
   }
 }
 
-runRigorousAudit().catch((err) => {
+runRigorousAudit().catch(async (err) => {
+  if (localDashboardServer) {
+    await localDashboardServer.stop().catch(() => {});
+  }
   console.error('Fatal audit failure:', err);
   process.exit(1);
 });
